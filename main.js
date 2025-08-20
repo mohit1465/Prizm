@@ -256,7 +256,12 @@ app.whenReady().then(() => {
   createMainWindow();
   
   // Initialize auto-updater
-  if (!require('electron-squirrel-startup')) {
+  try {
+    if (!require('electron-squirrel-startup')) {
+      setupAutoUpdater();
+    }
+  } catch (e) {
+    // If electron-squirrel-startup is not found, just set up the auto-updater
     setupAutoUpdater();
   }
 
