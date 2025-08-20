@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Browser Icon</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background: #0b0c10;
+            color: #e5e5e5;
+        }
+        canvas {
+            border: 2px solid #66fcf1;
+            margin: 20px;
+        }
+        button {
+            background: #1f2833;
+            color: #66fcf1;
+            border: 2px solid #66fcf1;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #66fcf1;
+            color: #0b0c10;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌐 Browser Icon Generator</h1>
+    <p>Click the button below to generate a browser icon for your .exe file</p>
+    
+    <canvas id="iconCanvas" width="256" height="256"></canvas>
+    <br>
+    <button onclick="generateIcon()">Generate Icon</button>
+    <button onclick="downloadIcon()">Download Icon</button>
+    
+    <script>
+        function generateIcon() {
+            const canvas = document.getElementById('iconCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, 256, 256);
+            
+            // Background
+            ctx.fillStyle = '#0b0c10';
+            ctx.fillRect(0, 0, 256, 256);
+            
+            // Outer circle
+            ctx.fillStyle = '#1f2833';
+            ctx.beginPath();
+            ctx.arc(128, 128, 100, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Inner circle
+            ctx.fillStyle = '#66fcf1';
+            ctx.beginPath();
+            ctx.arc(128, 128, 80, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Browser globe lines
+            ctx.strokeStyle = '#0b0c10';
+            ctx.lineWidth = 3;
+            
+            // Vertical line
+            ctx.beginPath();
+            ctx.moveTo(128, 48);
+            ctx.lineTo(128, 208);
+            ctx.stroke();
+            
+            // Horizontal line
+            ctx.beginPath();
+            ctx.moveTo(48, 128);
+            ctx.lineTo(208, 128);
+            ctx.stroke();
+            
+            // Diagonal lines
+            ctx.beginPath();
+            ctx.moveTo(88, 88);
+            ctx.lineTo(168, 168);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(168, 88);
+            ctx.lineTo(88, 168);
+            ctx.stroke();
+            
+            // Center dot
+            ctx.fillStyle = '#0b0c10';
+            ctx.beginPath();
+            ctx.arc(128, 128, 8, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+        
+        function downloadIcon() {
+            const canvas = document.getElementById('iconCanvas');
+            const link = document.createElement('a');
+            link.download = 'icon.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // Generate icon on page load
+        window.onload = generateIcon;
+    </script>
+</body>
+</html>
