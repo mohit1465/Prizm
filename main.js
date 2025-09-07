@@ -384,134 +384,33 @@ function setupAutoUpdater() {
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
   autoUpdater.allowPrerelease = false;
-  
-  let updateProgressWindow = null;
 
   autoUpdater.on('update-available', () => {
-    // Create a progress window
-    updateProgressWindow = new BrowserWindow({
-      width: 400,
-      height: 200,
-      webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: false
-      },
-      frame: false,
-      resizable: false,
-      show: false
-    });
-
-    updateProgressWindow.loadURL(`data:text/html;charset=utf-8,
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { 
-              font-family: Arial, sans-serif; 
-              text-align: center; 
-              padding: 20px;
-              background: #f5f5f5;
-              color: #333;
-            }
-            .progress-container {
-              width: 100%;
-              background-color: #e0e0e0;
-              border-radius: 5px;
-              margin: 20px 0;
-            }
-            .progress-bar {
-              width: 0%;
-              height: 20px;
-              background-color: #4CAF50;
-              border-radius: 5px;
-              transition: width 0.3s;
-            }
-            button {
-              background: #4CAF50;
-              color: white;
-              border: none;
-              padding: 10px 20px;
-              text-align: center;
-              text-decoration: none;
-              display: inline-block;
-              font-size: 14px;
-              margin: 10px 2px;
-              cursor: pointer;
-              border-radius: 4px;
-            }
-          </style>
-        </head>
-        <body>
-          <h3>Downloading Update...</h3>
-          <div class="progress-container">
-            <div id="progress" class="progress-bar"></div>
-          </div>
-          <p id="status">Preparing to download update...</p>
-          <div id="restartContainer" style="display: none;">
-            <p>Update downloaded. Ready to install!</p>
-            <button onclick="restartApp()">Restart Now</button>
-            <button onclick="closeWindow()">Install Later</button>
-          </div>
-          <script>
-            const { ipcRenderer } = require('electron');
-            
-            ipcRenderer.on('download-progress', (event, progress) => {
-              document.getElementById('progress').style.width = progress.percent + '%';
-              document.getElementById('status').textContent = 
-                'Downloaded: ' + Math.round(progress.bytesPerSecond / 1024) + ' KB/s - ' + Math.round(progress.percent) + '%';
-            });
-            
-            ipcRenderer.on('update-downloaded', () => {
-              document.getElementById('restartContainer').style.display = 'block';
-              document.getElementById('status').textContent = 'Update downloaded successfully!';
-            });
-            
-            function restartApp() {
-              ipcRenderer.send('restart-app');
-            }
-            
-            function closeWindow() {
-              window.close();
-            }
-          </script>
-        </body>
-      </html>`);
-
-    updateProgressWindow.once('ready-to-show', () => {
-      updateProgressWindow.show();
+    // Only show a simple notification when update is available
+    dialog.showMessageBox({
+      type: 'info',
+      title: 'Update Available',
+      message: 'A new version is being downloaded in the background. You will be notified when it\'s ready to install.',
+      buttons: ['OK']
     });
   });
 
-  // Track download progress
+  // Show download progress in the console
   autoUpdater.on('download-progress', (progressObj) => {
-    if (updateProgressWindow) {
-      updateProgressWindow.webContents.send('download-progress', {
-        percent: Math.floor(progressObj.percent),
-        bytesPerSecond: progressObj.bytesPerSecond
-      });
-    }
+    console.log('Download progress:', Math.floor(progressObj.percent) + '%');
   });
 
   autoUpdater.on('update-downloaded', () => {
-    if (updateProgressWindow) {
-      updateProgressWindow.webContents.send('update-downloaded');
-    } else {
-      dialog.showMessageBox({
-        type: 'info',
-        title: 'Update Ready',
-        message: 'A new version has been downloaded. Restart now to install the update?',
-        buttons: ['Restart', 'Later']
-      }).then(result => {
-        if (result.response === 0) {
-          autoUpdater.quitAndInstall();
-        }
-      });
-    }
-  });
-  
-  // Handle restart from the UI
-  ipcMain.on('restart-app', () => {
-    autoUpdater.quitAndInstall();
+    dialog.showMessageBox({
+      type: 'info',
+      title: 'Update Ready',
+      message: 'A new version has been downloaded. Restart now to install the update?',
+      buttons: ['Restart', 'Later']
+    }).then(result => {
+      if (result.response === 0) {
+        autoUpdater.quitAndInstall();
+      }
+    });
   });
 
   autoUpdater.on('error', (error) => {
@@ -520,7 +419,9 @@ function setupAutoUpdater() {
 
   // Check for updates after 5 seconds
   setTimeout(() => {
-    autoUpdater.checkForUpdates();
+    autoUpdater.checkForUpdates().catch(error => {
+      console.error('Failed to check for updates:', error);
+    });
   }, 5000);
 }
 
