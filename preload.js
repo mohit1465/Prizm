@@ -19,5 +19,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onOpenNewTab: (callback) => ipcRenderer.on('open-new-tab', (event, url) => callback(event, url)),
   
   // Window type
-  onWindowType: (callback) => ipcRenderer.on('window-type', (event, windowType) => callback(event, windowType))
+  onWindowType: (callback) => ipcRenderer.on('window-type', (event, windowType) => callback(event, windowType)),
+
+  getHistory: () => ipcRenderer.invoke('get-download-history'),
+  showItemInFolder: (path) => ipcRenderer.invoke('show-item-in-folder', path)
 });
+

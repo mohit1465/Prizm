@@ -1,7 +1,8 @@
 // Enhanced Electron Browser - Main Process
 
-const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, shell, ipcMain, dialog, session } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const { autoUpdater } = require('electron-updater');
 
 // Window control IPC handlers
@@ -54,10 +55,43 @@ ipcMain.handle('window-close', (event) => {
         }
     } catch (error) {
         console.error('Error in window-close handler:', error);
+        
+    } finally {
+        // Added finally block to ensure cleanup
+        const win = BrowserWindow.fromWebContents(event.sender);
+        if (win && !win.isDestroyed()) {
+            win.removeListener('resize', saveState);
+            win.removeListener('move', saveState);
+            win.removeListener('close', saveState);
+            win.removeListener('maximize', onMaximize);
+            win.removeListener('unmaximize', onUnmaximize);
+        }
     }
 });
 
-const fs = require('fs');
+
+ipcMain.handle('get-download-history', () => {
+  const historyPath = path.join(app.getPath('userData'), 'download-history.json');
+  if (fs.existsSync(historyPath)) {
+    return JSON.parse(fs.readFileSync(historyPath));
+  }
+  return [];
+});
+
+
+ipcMain.handle('show-item-in-folder', async (event, filePath) => {
+  try {
+    if (filePath && fs.existsSync(filePath)) {
+      shell.showItemInFolder(path.normalize(filePath));
+      return { success: true };
+    }
+    return { success: false, error: 'File not found' };
+  } catch (error) {
+    console.error('Error showing item in folder:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 const stateFile = path.join(app.getPath('userData'), 'window-state.json');
 function loadWindowState() {
 	try {
@@ -210,8 +244,140 @@ function createMainWindow(windowType = 'default') {
 		windowState = currentWindow;
 	});
 
+  
+
+
+
+
+
+
+
+  // Attach download listener
+  session.defaultSession.on('will-download', (event, item, webContents) => {
+    // Get file info
+    const fileName = item.getFilename();
+    const fileSize = item.getTotalBytes();
+    const savePath = app.getPath('downloads'); // default downloads folder
+
+    // Set the save path
+    item.setSavePath(path.join(savePath, fileName));
+
+    // Track progress
+    item.on('updated', (event, state) => {
+      if (state === 'progressing') {
+        if (!item.isPaused()) {
+          console.log(`Downloading ${fileName} - ${item.getReceivedBytes()}/${fileSize}`);
+        }
+      }
+    });
+
+    // When download finishes
+    item.once('done', (event, state) => {
+      if (state === 'completed') {
+        console.log(`Download completed: ${fileName}`);
+
+        // Save to history.json
+        const historyPath = path.join(app.getPath('userData'), 'download-history.json');
+
+        let history = [];
+        if (fs.existsSync(historyPath)) {
+          history = JSON.parse(fs.readFileSync(historyPath));
+        }
+
+        history.push({
+          name: fileName,
+          path: path.join(savePath, fileName),
+          size: fileSize,
+          date: new Date().toISOString(),
+        });
+
+        fs.writeFileSync(historyPath, JSON.stringify(history, null, 2));
+      } else {
+        console.log(`Download failed: ${fileName}`);
+      }
+    });
+  });
+
+
 	return win;
 }
+
+
+
+
+
+
+
+
+
+function handleDownload(item) {
+  const fileName = item.getFilename();
+  const fileSize = item.getTotalBytes();
+  const savePath = app.getPath('downloads');
+  const fullPath = path.join(savePath, fileName);
+
+  item.setSavePath(fullPath);
+
+  item.on('updated', (event, state) => {
+    if (state === 'progressing' && !item.isPaused()) {
+      console.log(`Downloading ${fileName} - ${item.getReceivedBytes()}/${fileSize}`);
+    }
+  });
+
+  item.once('done', (event, state) => {
+    if (state === 'completed') {
+      console.log(`Download completed: ${fullPath}`);
+      saveDownloadHistory(fileName, fullPath, fileSize);
+    } else {
+      console.log(`Download failed: ${fileName}`);
+    }
+  });
+}
+
+function saveDownloadHistory(name, filePath, size) {
+  const historyPath = path.join(app.getPath('userData'), 'downloads.json');
+  let history = [];
+
+  if (fs.existsSync(historyPath)) {
+    try {
+      const data = fs.readFileSync(historyPath, 'utf8');
+      history = JSON.parse(data);
+    } catch (err) {
+      console.error('Error parsing download history:', err);
+      // If file is corrupted, rename it and start fresh
+      const backupPath = `${historyPath}.bak.${Date.now()}`;
+      fs.renameSync(historyPath, backupPath);
+      console.log(`Corrupted history file backed up to: ${backupPath}`);
+    }
+  }
+
+  // Add new download to the beginning of the array (most recent first)
+  history.unshift({
+    name,
+    path: filePath,
+    size,
+    date: new Date().toISOString(),
+  });
+
+  // Keep only the last 100 downloads
+  if (history.length > 100) {
+    history = history.slice(0, 100);
+  }
+
+  try {
+    fs.writeFileSync(historyPath, JSON.stringify(history, null, 2));
+  } catch (err) {
+    console.error('Error writing download history:', err);
+  }
+}
+
+
+
+
+
+
+
+
 
 // Auto-update handlers
 function setupAutoUpdater() {
@@ -251,26 +417,28 @@ function setupAutoUpdater() {
   }, 5000);
 }
 
-// App lifecycle
 app.whenReady().then(() => {
   createMainWindow();
-  
-  // Initialize auto-updater
+
+  // Attach download listener once here
+  session.defaultSession.on('will-download', (event, item, webContents) => {
+    handleDownload(item);
+  });
+
+  // Auto-updater
   try {
     if (!require('electron-squirrel-startup')) {
       setupAutoUpdater();
     }
   } catch (e) {
-    // If electron-squirrel-startup is not found, just set up the auto-updater
     setupAutoUpdater();
   }
 
-	// Handle macOS activation
-	app.on('activate', () => {
-	if (BrowserWindow.getAllWindows().length === 0) {
-		createMainWindow();
-	}
-	});
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createMainWindow();
+    }
+  });
 });
 
 // Quit when all windows are closed

@@ -461,24 +461,21 @@ class TabManager {
     const activeTab = this.browserState.getActiveTab();
     if (!activeTab) return;
 
-    const webviewData = this.webviews.get(activeTab.id);
-    if (!webviewData) return;
+    const webview = this.webviews.get(activeTab.id)?.webview;
+    if (!webview) return;
 
-    const backBtn = document.getElementById('back');
-    const forwardBtn = document.getElementById('forward');
+    // Update back/forward buttons
+    document.getElementById('back').disabled = !webview.canGoBack();
+    document.getElementById('forward').disabled = !webview.canGoForward();
+  }
 
-    // Only enable if webview is ready
-    if (webviewData.webview._isReady) {
-      try {
-        backBtn.disabled = !webviewData.webview.canGoBack();
-        forwardBtn.disabled = !webviewData.webview.canGoForward();
-      } catch (e) {
-        backBtn.disabled = true;
-        forwardBtn.disabled = true;
-      }
-    } else {
-      backBtn.disabled = true;
-      forwardBtn.disabled = true;
+  updateAddressBar() {
+    const activeTab = this.browserState.getActiveTab();
+    if (!activeTab) return;
+
+    const addressInput = document.getElementById('address');
+    if (addressInput) {
+      addressInput.value = activeTab.url || '';
     }
   }
 
@@ -1332,7 +1329,36 @@ class UIManager {
             webview.openDevTools();
           }
         }
-      } else if (e.ctrlKey) {
+      }
+      // Ctrl+T - New Tab
+      else if (e.ctrlKey && e.key === 't') {
+        e.preventDefault();
+        this.tabManager.createNewTab();
+        // Close the sidebar after creating a new tab
+        sidebar.classList.remove('open');
+        const activeTab = this.browserState.getActiveTab();
+        if (activeTab) {
+          const webviewData = this.tabManager.webviews.get(activeTab.id);
+          if (webviewData) {
+            webviewData.container.classList.remove('sidebar-open');
+          }
+        }
+      }
+      // Ctrl+N - New Window
+      else if (e.ctrlKey && e.key === 'n' && !e.shiftKey) {
+        e.preventDefault();
+        if (window.electronAPI && window.electronAPI.newWindow) {
+          window.electronAPI.newWindow();
+        }
+      }
+      // Ctrl+Shift+N - New Incognito Window
+      else if (e.ctrlKey && e.shiftKey && e.key === 'N') {
+        e.preventDefault();
+        if (window.electronAPI && window.electronAPI.newIncognitoWindow) {
+          window.electronAPI.newIncognitoWindow();
+        }
+      }
+      else if (e.ctrlKey) {
         document.body.classList.add('zoom-mode');
       }
     });
@@ -1415,6 +1441,129 @@ class UIManager {
     }
   }
 }
+
+
+
+window.electronAPI.getHistory().then(history => {
+  console.log('Download History:', history);
+
+  // Display in downloads list
+  const list = document.getElementById('downloads');
+  list.innerHTML = ''; // Clear existing items
+  
+  if (history.length === 0) {
+    const emptyState = document.createElement('div');
+    emptyState.className = 'downloads-empty';
+    emptyState.textContent = 'No downloads yet';
+    list.appendChild(emptyState);
+    return;
+  }
+
+  history.forEach(download => {
+    const item = document.createElement('div');
+    item.className = 'download-item';
+    
+    const details = document.createElement('div');
+    details.className = 'download-details';
+    
+    const name = document.createElement('div');
+    name.className = 'download-name';
+    name.textContent = download.name;
+    
+    const meta = document.createElement('div');
+    meta.className = 'download-meta';
+    
+    const size = document.createElement('span');
+    size.className = 'download-size';
+    size.textContent = formatFileSize(download.size);
+    
+    const time = document.createElement('span');
+    time.className = 'download-time';
+    time.textContent = new Date(download.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    meta.appendChild(size);
+    meta.appendChild(time);
+    
+    details.appendChild(name);
+    details.appendChild(meta);
+    
+    // Action buttons container
+    const actions = document.createElement('div');
+    actions.className = 'download-actions';
+    
+    // Open folder button
+    const folderBtn = document.createElement('button');
+    folderBtn.className = 'download-action folder-btn';
+    folderBtn.title = 'Show in folder';
+    folderBtn.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+      </svg>
+    `;
+    folderBtn.onclick = async (e) => {
+      e.stopPropagation();
+      if (download.path) {
+        const result = await window.electronAPI.showItemInFolder(download.path);
+        if (!result.success) {
+          console.error('Failed to show item in folder:', result.error);
+          // Optional: Show error message to user
+          alert(`Could not find the file. It may have been moved or deleted.`);
+        }
+      } else {
+        console.error('No file path available for this download');
+        // Optional: Show message to user
+        alert('File location is not available for this download.');
+      }
+    };
+    
+    // Disable folder button if no path is available
+    if (!download.path) {
+      folderBtn.disabled = true;
+      folderBtn.style.opacity = '0.5';
+      folderBtn.style.cursor = 'not-allowed';
+      folderBtn.title = 'File location not available';
+    }
+    
+    // Menu button (3 dots)
+    const menuBtn = document.createElement('button');
+    menuBtn.className = 'download-action menu-btn';
+    menuBtn.title = 'More options';
+    menuBtn.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="1"></circle>
+        <circle cx="12" cy="5" r="1"></circle>
+        <circle cx="12" cy="19" r="1"></circle>
+      </svg>
+    `;
+    menuBtn.onclick = (e) => {
+      e.stopPropagation();
+      // TODO: Implement menu actions
+      console.log('Menu clicked for:', download.name);
+    };
+    
+    actions.appendChild(folderBtn);
+    actions.appendChild(menuBtn);
+    
+    item.appendChild(details);
+    item.appendChild(actions);
+    
+    list.appendChild(item);
+  });
+});
+
+// Helper function to format file size
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+
+
+
+
 
 /**
  * Initialize the browser

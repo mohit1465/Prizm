@@ -1,13 +1,13 @@
 {
   "name": "prizm-browser",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.4",
   "description": "A minimal desktop web browser built with Electron.",
   "main": "main.js",
   "license": "MIT",
   "author": "",
   "scripts": {
     "start": "electron .",
-    "dist": "node build-simple.js",
+    "dist": "electron-builder --win",
     "build:exe": "node build-simple.js",
     "build:portable": "electron-builder --win portable",
     "pack:win": "npx electron-packager . Prizm --platform=win32 --arch=x64 --icon=assets/Prizm_Logo.ico --out=dist --overwrite --app-version=1.0.0 --app-copyright=Copyright (c) 2025 PrimeX",
@@ -15,12 +15,20 @@
     "build:apk": "build-apk.bat",
     "sync:android": "npx cap sync android"
   },
+  "dependencies": {
+    "electron-updater": "^6.6.2",
+    "@capacitor/android": "^7.4.2",
+    "@capacitor/app": "^7.0.2",
+    "@capacitor/browser": "^7.0.2",
+    "@capacitor/cli": "^7.4.2",
+    "@capacitor/core": "^7.4.2",
+    "@capacitor/status-bar": "^7.0.2"
+  },
   "devDependencies": {
     "electron": "^30.5.1",
     "electron-builder": "^24.13.3",
     "electron-packager": "^17.1.2",
-    "electron-squirrel-startup": "^1.0.1",
-    "electron-updater": "^6.6.2"
+    "electron-squirrel-startup": "^1.0.1"
   },
   "build": {
     "appId": "com.example.Prizm",
@@ -30,7 +38,6 @@
         "nsis",
         "portable"
       ],
-      "arch": "x64",
       "icon": "assets/Prizm_Logo.ico"
     },
     "nsis": {
@@ -59,13 +66,5 @@
       ],
       "category": "Utility"
     }
-  },
-  "dependencies": {
-    "@capacitor/android": "^7.4.2",
-    "@capacitor/app": "^7.0.2",
-    "@capacitor/browser": "^7.0.2",
-    "@capacitor/cli": "^7.4.2",
-    "@capacitor/core": "^7.4.2",
-    "@capacitor/status-bar": "^7.0.2"
   }
 }
