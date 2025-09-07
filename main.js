@@ -385,15 +385,28 @@ function setupAutoUpdater() {
   autoUpdater.autoInstallOnAppQuit = true;
   autoUpdater.allowPrerelease = false;
 
+  let mainWindow;
+
+  // Store update available state
+  let updateAvailable = false;
+  let updateDownloaded = false;
+
   autoUpdater.on('update-available', () => {
-    // Only show a simple notification when update is available
-    dialog.showMessageBox({
+    updateAvailable = true;
+    // Only show notification if window is ready
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      showUpdateAvailable();
+    }
+  });
+
+  function showUpdateAvailable() {
+    dialog.showMessageBox(mainWindow, {
       type: 'info',
       title: 'Update Available',
       message: 'A new version is being downloaded in the background. You will be notified when it\'s ready to install.',
       buttons: ['OK']
-    });
-  });
+    }).catch(console.error);
+  }
 
   // Show download progress in the console
   autoUpdater.on('download-progress', (progressObj) => {
@@ -401,7 +414,14 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.on('update-downloaded', () => {
-    dialog.showMessageBox({
+    updateDownloaded = true;
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      showUpdateReady();
+    }
+  });
+
+  function showUpdateReady() {
+    dialog.showMessageBox(mainWindow, {
       type: 'info',
       title: 'Update Ready',
       message: 'A new version has been downloaded. Restart now to install the update?',
@@ -410,12 +430,28 @@ function setupAutoUpdater() {
       if (result.response === 0) {
         autoUpdater.quitAndInstall();
       }
-    });
-  });
+    }).catch(console.error);
+  }
 
   autoUpdater.on('error', (error) => {
     console.error('Update error:', error);
   });
+
+  // Get the main window reference from createMainWindow
+  const originalCreateMainWindow = createMainWindow;
+  createMainWindow = function(windowType) {
+    mainWindow = originalCreateMainWindow(windowType);
+    
+    // If updates were detected before window was ready, show them now
+    if (updateAvailable) {
+      showUpdateAvailable();
+    }
+    if (updateDownloaded) {
+      showUpdateReady();
+    }
+    
+    return mainWindow;
+  };
 
   // Check for updates after 5 seconds
   setTimeout(() => {
@@ -426,7 +462,8 @@ function setupAutoUpdater() {
 }
 
 app.whenReady().then(() => {
-  createMainWindow();
+  // Create the main window
+  mainWindow = createMainWindow();
 
   // Attach download listener once here
   session.defaultSession.on('will-download', (event, item, webContents) => {
