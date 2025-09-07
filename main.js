@@ -384,86 +384,145 @@ function setupAutoUpdater() {
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
   autoUpdater.allowPrerelease = false;
+  autoUpdater.allowDowngrade = false;
+  autoUpdater.fullChangelog = true;
 
-  let mainWindow;
-
-  // Store update available state
+  // Configure logging
+  const log = require('electron-log');
+  log.transports.file.level = 'info';
+  autoUpdater.logger = log;
+  
+  // Create a progress window reference
+  let progressWindow = null;
   let updateAvailable = false;
-  let updateDownloaded = false;
 
-  autoUpdater.on('update-available', () => {
+  // Event when update is available
+  autoUpdater.on('update-available', (info) => {
     updateAvailable = true;
-    // Only show notification if window is ready
+    log.info('Update available:', info.version);
+    
+    // Create a progress window
     if (mainWindow && !mainWindow.isDestroyed()) {
-      showUpdateAvailable();
+      mainWindow.webContents.send('update-status', {
+        status: 'downloading',
+        version: info.version,
+        progress: 0
+      });
     }
-  });
-
-  function showUpdateAvailable() {
-    dialog.showMessageBox(mainWindow, {
+    
+    dialog.showMessageBox({
       type: 'info',
       title: 'Update Available',
-      message: 'A new version is being downloaded in the background. You will be notified when it\'s ready to install.',
+      message: `A new version of Prizm (${info.version}) is being downloaded...`,
       buttons: ['OK']
-    }).catch(console.error);
-  }
-
-  // Show download progress in the console
-  autoUpdater.on('download-progress', (progressObj) => {
-    console.log('Download progress:', Math.floor(progressObj.percent) + '%');
+    });
   });
 
-  autoUpdater.on('update-downloaded', () => {
-    updateDownloaded = true;
+  // Event when update is not available
+  autoUpdater.on('update-not-available', (info) => {
+    log.info('No update available');
     if (mainWindow && !mainWindow.isDestroyed()) {
-      showUpdateReady();
+      mainWindow.webContents.send('update-status', { status: 'up-to-date' });
     }
   });
 
-  function showUpdateReady() {
-    dialog.showMessageBox(mainWindow, {
+  // Track download progress
+  autoUpdater.on('download-progress', (progressObj) => {
+    const progress = Math.floor(progressObj.percent);
+    log.info(`Download progress: ${progress}%`);
+    
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-status', {
+        status: 'downloading',
+        progress: progress
+      });
+    }
+  });
+
+  // Event when update is downloaded
+  autoUpdater.on('update-downloaded', (info) => {
+    log.info('Update downloaded, ready to install');
+    
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-status', {
+        status: 'downloaded',
+        version: info.version
+      });
+    }
+    
+    dialog.showMessageBox({
       type: 'info',
       title: 'Update Ready',
-      message: 'A new version has been downloaded. Restart now to install the update?',
-      buttons: ['Restart', 'Later']
+      message: `Prizm ${info.version} has been downloaded. Restart now to install the update?`,
+      detail: 'Your changes will be saved and restored after the update.',
+      buttons: ['Restart Now', 'Later'],
+      defaultId: 0,
+      cancelId: 1
     }).then(result => {
       if (result.response === 0) {
-        autoUpdater.quitAndInstall();
+        autoUpdater.quitAndInstall(true, true);
       }
-    }).catch(console.error);
-  }
-
-  autoUpdater.on('error', (error) => {
-    console.error('Update error:', error);
+    }).catch(err => {
+      log.error('Error showing update dialog:', err);
+    });
   });
 
-  // Get the main window reference from createMainWindow
-  const originalCreateMainWindow = createMainWindow;
-  createMainWindow = function(windowType) {
-    mainWindow = originalCreateMainWindow(windowType);
+  // Handle update errors
+  autoUpdater.on('error', (error) => {
+    log.error('Update error:', error);
     
-    // If updates were detected before window was ready, show them now
-    if (updateAvailable) {
-      showUpdateAvailable();
-    }
-    if (updateDownloaded) {
-      showUpdateReady();
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-status', {
+        status: 'error',
+        message: error.message || 'Failed to check for updates'
+      });
     }
     
-    return mainWindow;
+    // Only show error dialog for non-network errors
+    if (!error.message || !error.message.includes('net::ERR_INTERNET_DISCONNECTED')) {
+      dialog.showErrorBox('Update Error', 
+        `Failed to check for updates: ${error.message || 'Unknown error'}\n\n` +
+        'Please check your internet connection and try again later.'
+      );
+    }
+  });
+
+  // Check for updates after a short delay to ensure the app is fully loaded
+  const checkForUpdates = () => {
+    log.info('Checking for updates...');
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-status', { status: 'checking' });
+    }
+    
+    autoUpdater.checkForUpdates().catch(err => {
+      log.error('Failed to check for updates:', err);
+    });
   };
 
-  // Check for updates after 5 seconds
-  setTimeout(() => {
-    autoUpdater.checkForUpdates().catch(error => {
-      console.error('Failed to check for updates:', error);
-    });
-  }, 5000);
+  // Initial check after 5 seconds
+  setTimeout(checkForUpdates, 5000);
+  
+  // Then check every 6 hours
+  setInterval(checkForUpdates, 6 * 60 * 60 * 1000);
+  
+  // IPC handler for manual update check
+  ipcMain.handle('check-for-updates', async () => {
+    checkForUpdates();
+    return { status: 'checking' };
+  });
+  
+  // IPC handler to restart and install update
+  ipcMain.handle('install-update', async () => {
+    if (updateAvailable) {
+      autoUpdater.quitAndInstall(true, true);
+      return { success: true };
+    }
+    return { success: false, error: 'No update available to install' };
+  });
 }
 
 app.whenReady().then(() => {
-  // Create the main window
-  mainWindow = createMainWindow();
+  createMainWindow();
 
   // Attach download listener once here
   session.defaultSession.on('will-download', (event, item, webContents) => {

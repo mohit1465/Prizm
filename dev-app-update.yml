@@ -1,0 +1,17 @@
+owner: Mohit1465
+repo: Prizm
+provider: github
+updaterCacheDirName: "Prizm"
+artifactName: "${productName}.Setup.${version}.${ext}"
+
+# Update configuration to match the new naming pattern
+updaterConfig:
+  provider: github
+  owner: Mohit1465
+  repo: Prizm
+  releaseType: release
+
+# Enable detailed logging
+logger:
+  level: info
+  file: logs/main.log

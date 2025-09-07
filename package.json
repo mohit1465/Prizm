@@ -1,14 +1,10 @@
 {
   "name": "prizm-browser",
-  "version": "1.0.0-beta.7",
+  "version": "1.0.0-beta.4",
   "description": "A minimal desktop web browser built with Electron.",
   "main": "main.js",
   "license": "MIT",
-  "author": "mohit1465",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/mohit1465/Prizm.git"
-  },
+  "author": "",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win",
@@ -20,6 +16,7 @@
     "sync:android": "npx cap sync android"
   },
   "dependencies": {
+    "electron-log": "^5.1.0",
     "electron-updater": "^6.6.2",
     "@capacitor/android": "^7.4.2",
     "@capacitor/app": "^7.0.2",
@@ -37,24 +34,36 @@
   "build": {
     "appId": "com.example.Prizm",
     "productName": "Prizm",
+    "artifactName": "${productName}.Setup.${version}.${ext}",
     "publish": [
       {
         "provider": "github",
         "owner": "Mohit1465",
-        "repo": "Prizm"
+        "repo": "Prizm",
+        "releaseType": "release"
       }
     ],
     "win": {
       "target": [
-        "nsis",
-        "portable"
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
       ],
-      "publish": ["github"],
       "icon": "assets/Prizm_Logo.ico"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false
     },
     "files": [
       "**/*",
