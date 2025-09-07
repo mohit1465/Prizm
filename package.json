@@ -31,26 +31,29 @@
     "electron-packager": "^17.1.2",
     "electron-squirrel-startup": "^1.0.1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mohit1465/Prizm.git"
+  },
   "build": {
     "appId": "com.example.Prizm",
     "productName": "Prizm",
     "artifactName": "${productName}.Setup.${version}.${ext}",
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "Mohit1465",
-        "repo": "Prizm",
-        "releaseType": "release"
-      }
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme,test,__tests__}",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!node_modules/.cache/**"
     ],
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
-        },
-        {
-          "target": "portable",
           "arch": ["x64"]
         }
       ],
@@ -58,17 +61,11 @@
     },
     "nsis": {
       "oneClick": false,
-      "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "runAfterFinish": true,
-      "deleteAppDataOnUninstall": false
+      "runAfterFinish": true
     },
-    "files": [
-      "**/*",
-      "!node_modules/.cache/**"
-    ],
     "mac": {
       "target": "dmg",
       "category": "public.app-category.productivity"
