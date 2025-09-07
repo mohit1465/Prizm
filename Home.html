@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prizm Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background-color: #E2E4F5;
+            --gray-blue: #9DABD9;
+            --light-blue: #BFC6F4;
+            --white-blue: #E4EAFF;
+            --text-light-blue: #586FBC;
+            --text-color: #1E293B;
+            --white-color: #ffffff;
+            --light-white: #ffffffa6;
+            --black-color: #000000;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        html[data-theme='dark'] {
+            --background-color: #101019;
+            --gray-blue: #16171D;
+            --light-blue: #21242E;
+            --white-blue: #393D4C;
+            --text-light-blue: #81CE85;
+            --text-color: #e7f0ff;
+            --white-color: #1a1a1a;
+            --light-white: #2d2d2d;
+            --black-color: #ffffff;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 3rem;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            border: 2px solid var(--light-blue);
+            border-radius: 50px;
+            background-color: var(--white-color);
+            color: var(--text-color);
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: var(--box-shadow);
+        }
+
+        .search-box:focus {
+            border-color: var(--text-light-blue);
+            box-shadow: 0 0 0 3px rgba(91, 143, 249, 0.3);
+        }
+
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .quick-link {
+            background-color: var(--white-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: var(--box-shadow);
+        }
+
+        .quick-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .quick-link i {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-light-blue);
+        }
+
+        .quick-link span {
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .quick-links {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 1rem;
+            }
+            
+            .quick-link {
+                padding: 1rem 0.5rem;
+            }
+            
+            .quick-link i {
+                font-size: 1.25rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .quick-link span {
+                font-size: 0.8rem;
+            }
+            
+            .search-box {
+                padding: 0.875rem 1.25rem;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .quick-links {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .container {
+                padding: 1.5rem 1rem;
+            }
+            
+            .logo {
+                width: 100px;
+                height: 100px;
+                margin-bottom: 1.5rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <img src="assets/Prizm_Logo.png" alt="Prizm Logo" class="logo">
+        
+        <div class="search-container">
+            <input type="text" class="search-box" placeholder="Search with Prizm or enter address" id="searchInput">
+        </div>
+        
+        <div class="quick-links">
+            <a href="https://mail.google.com" class="quick-link" target="_blank">
+                <i class="fas fa-envelope"></i>
+                <span>Gmail</span>
+            </a>
+            <a href="https://www.youtube.com" class="quick-link" target="_blank">
+                <i class="fab fa-youtube"></i>
+                <span>YouTube</span>
+            </a>
+            <a href="https://www.github.com" class="quick-link" target="_blank">
+                <i class="fab fa-github"></i>
+                <span>GitHub</span>
+            </a>
+            <a href="https://www.reddit.com" class="quick-link" target="_blank">
+                <i class="fab fa-reddit"></i>
+                <span>Reddit</span>
+            </a>
+            <a href="https://www.netflix.com" class="quick-link" target="_blank">
+                <i class="fab fa-netflix"></i>
+                <span>Netflix</span>
+            </a>
+            <a href="https://www.twitter.com" class="quick-link" target="_blank">
+                <i class="fab fa-twitter"></i>
+                <span>Twitter</span>
+            </a>
+        </div>
+    </div>
+    
+    <footer>
+        Prizm Browser &copy; 2025 | Your gateway to the web
+    </footer>
+
+    <script>
+        // Theme detection
+        function updateTheme() {
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        }
+
+        // Initial theme setup
+        updateTheme();
+
+        // Listen for theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateTheme);
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const query = searchInput.value.trim();
+                if (query) {
+                    // Check if it's a URL
+                    if (query.includes('.') && !query.includes(' ')) {
+                        // Add https:// if not present
+                        const url = query.startsWith('http') ? query : 'https://' + query;
+                        window.location.href = url;
+                    } else {
+                        // It's a search query
+                        window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+                    }
+                }
+            }
+        });
+
+        // Focus the search box on page load
+        window.addEventListener('load', () => {
+            searchInput.focus();
+        });
+    </script>
+</body>
+</html>

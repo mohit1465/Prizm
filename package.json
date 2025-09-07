@@ -16,17 +16,17 @@
     "sync:android": "npx cap sync android"
   },
   "dependencies": {
-    "electron-log": "^5.1.0",
-    "electron-updater": "^6.6.2",
     "@capacitor/android": "^7.4.2",
     "@capacitor/app": "^7.0.2",
     "@capacitor/browser": "^7.0.2",
     "@capacitor/cli": "^7.4.2",
     "@capacitor/core": "^7.4.2",
-    "@capacitor/status-bar": "^7.0.2"
+    "@capacitor/status-bar": "^7.0.2",
+    "electron-log": "^5.1.0",
+    "electron-updater": "^6.6.2"
   },
   "devDependencies": {
-    "electron": "^30.5.1",
+    "electron": "^38.0.0",
     "electron-builder": "^24.13.3",
     "electron-packager": "^17.1.2",
     "electron-squirrel-startup": "^1.0.1"
@@ -54,7 +54,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "assets/Prizm_Logo.ico"

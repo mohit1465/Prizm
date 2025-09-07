@@ -389,16 +389,38 @@
             min-height: 0;
             position: relative;
         }
+        /* Webview container */
         .webview-container {
-            flex: 1 1 0%;
-            position: relative;
-            margin: 10px;
-            border-radius: 25px;
-            box-shadow: var(--boxs-shadow);
-            overflow: hidden;
-            transition: width 0.3s cubic-bezier(.4,0,.2,1), flex 0.3s cubic-bezier(.4,0,.2,1);
+            display: none;
+            height: 100%;
             width: 100%;
-            max-width: 100%;
+            position: relative;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            margin: 0;
+            padding: 10px;
+            border: none;
+            border-radius: 30px;
+            background: transparent;
+        }
+        
+        /* Webview element */
+        webview {
+            display: flex;
+            flex: 1;
+            height: 100%;
+            width: 100%;
+            border: none;
+            border-radius: 30px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+        }
+        .webview-container.active {
+            display: flex;
+            flex-direction: column;
         }
         .webview-container.sidebar-open {
             width: calc(100% - 320px); /* 300px sidebar + 20px margin */

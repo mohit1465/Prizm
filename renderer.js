@@ -4,7 +4,7 @@
 /**
  * Default home page for the browser.
  */
-const HOME_URL = 'https://www.google.com';
+const HOME_URL = 'file:///c:/Users/My/Desktop/Prizm-1/Home.html';
 
 /**
  * Browser state management
@@ -114,7 +114,7 @@ class BrowserState {
 
   getDefaultSettings() {
     return {
-      homePage: HOME_URL,
+      homePage: 'file:///c:/Users/My/Desktop/Prizm-1/Home.html',
       searchEngine: 'https://www.google.com/search?q=',
       showBookmarksBar: true,
       showStatusBar: true,
@@ -213,7 +213,11 @@ class TabManager {
     webview._isReady = false;
     webview.addEventListener('dom-ready', () => {
       webview._isReady = true;
-      this.updateNavigationButtons();
+      // Only update navigation buttons if this is the active tab
+      const activeTab = this.browserState.getActiveTab();
+      if (activeTab && activeTab.id === tab.id) {
+        this.updateNavigationButtons();
+      }
     });
 
     this.content.insertBefore(container, document.getElementById('global-webview-sidebar'));
@@ -262,6 +266,8 @@ class TabManager {
       const url = webview.getURL();
       const title = webview.getTitle();
       const favicon = webview.FaviconURL || `${new URL(url).origin}/favicon.ico`
+      
+      // Update the tab with the latest URL and title
       this.browserState.updateTab(tabId, {
         url,
         title: title || 'New Tab',
@@ -271,6 +277,7 @@ class TabManager {
       
       this.browserState.addToHistory(url, title);
       this.updateTabUI(tabId);
+      // Force update the address bar with the latest URL
       this.updateAddressBar();
       this.updateNavigationButtons();
     });
@@ -280,11 +287,19 @@ class TabManager {
       this.updateTabUI(tabId);
     });
 
-    webview.addEventListener('did-navigate', () => {
+    webview.addEventListener('did-navigate', (event) => {
+      // Update the tab's URL when navigation occurs
+      this.browserState.updateTab(tabId, { url: event.url });
+      this.updateAddressBar();
       this.updateNavigationButtons();
     });
 
-    webview.addEventListener('did-navigate-in-page', () => {
+    webview.addEventListener('did-navigate-in-page', (event) => {
+      // Update the tab's URL for in-page navigation
+      if (event.isMainFrame) {
+        this.browserState.updateTab(tabId, { url: event.url });
+        this.updateAddressBar();
+      }
       this.updateNavigationButtons();
     });
 
@@ -376,14 +391,14 @@ class TabManager {
 
   switchToTab(tabId) {
     // Hide all webviews
-    this.webviews.forEach(({ container }) => {
-      container.classList.add('hidden');
+    document.querySelectorAll('.webview-container').forEach(el => {
+      el.classList.remove('active');
     });
 
-    // Show active webview
-    const activeWebview = this.webviews.get(tabId);
-    if (activeWebview) {
-      activeWebview.container.classList.remove('hidden');
+    // Show the active webview
+    const activeWebviewData = this.webviews.get(tabId);
+    if (activeWebviewData && activeWebviewData.container) {
+      activeWebviewData.container.classList.add('active');
     }
 
     // Update tab states
@@ -398,7 +413,13 @@ class TabManager {
 
     this.browserState.setActiveTab(tabId);
     this.updateAddressBar();
-    this.updateNavigationButtons();
+    
+    // Only update navigation buttons if webview is ready
+    const webviewData = this.webviews.get(tabId);
+    if (webviewData?.webview?._isReady) {
+      this.updateNavigationButtons();
+    }
+    
     this.emit('tab-changed', tabId);
   }
 
@@ -461,21 +482,44 @@ class TabManager {
     const activeTab = this.browserState.getActiveTab();
     if (!activeTab) return;
 
-    const webview = this.webviews.get(activeTab.id)?.webview;
-    if (!webview) return;
+    const webviewData = this.webviews.get(activeTab.id);
+    if (!webviewData || !webviewData.webview) return;
 
-    // Update back/forward buttons
-    document.getElementById('back').disabled = !webview.canGoBack();
-    document.getElementById('forward').disabled = !webview.canGoForward();
+    try {
+      // Check if webview is ready
+      if (webviewData.webview._isReady) {
+        // Update back/forward buttons
+        document.getElementById('back').disabled = !webviewData.webview.canGoBack();
+        document.getElementById('forward').disabled = !webviewData.webview.canGoForward();
+      }
+    } catch (error) {
+      // Ignore errors if webview methods can't be called yet
+      console.debug('Webview not ready for navigation buttons update');
+    }
   }
 
   updateAddressBar() {
     const activeTab = this.browserState.getActiveTab();
-    if (!activeTab) return;
+    if (!activeTab || !activeTab.url) return;
 
     const addressInput = document.getElementById('address');
-    if (addressInput) {
-      addressInput.value = activeTab.url || '';
+    if (!addressInput) return;
+    
+    // Normalize URLs for comparison
+    const normalizeUrl = (url) => {
+      if (!url) return '';
+      // Remove trailing slashes and convert to lowercase for case-insensitive comparison
+      return url.replace(/\/$/, '').toLowerCase();
+    };
+    
+    const currentUrl = normalizeUrl(activeTab.url);
+    const homePage = normalizeUrl(this.browserState.settings.homePage || '');
+    
+    // Check if current URL is the home page URL or if it's the initial load
+    if (currentUrl === homePage || currentUrl.endsWith('home.html')) {
+      addressInput.value = '';
+    } else {
+      addressInput.value = activeTab.url;
     }
   }
 
