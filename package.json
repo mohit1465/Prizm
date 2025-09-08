@@ -4,7 +4,7 @@
   "description": "A minimal desktop web browser built with Electron.",
   "main": "main.js",
   "license": "MIT",
-  "author": "",
+  "author": "PrimeX",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win",
@@ -85,7 +85,7 @@
       "menuCategory": true,
       "shortcutName": "Prizm Browser",
       "uninstallDisplayName": "Prizm Browser",
-      "include": "build/installer.nsh"
+      "include": "installer.nsh"
     },
     "mac": {
       "target": "dmg",
