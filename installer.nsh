@@ -8,21 +8,24 @@
 !macroend
 
 !macro customHeader
-    !system "echo ''
 !macroend
 
 !macro customInit
-    !system "echo ''
 !macroend
 
 !macro customInstall
-    !system "echo ''
 !macroend
 
 !macro customUnInit
-    !system "echo ''
 !macroend
 
 !macro customInstallMode
-    !system "echo ''
+    !insertMacro setCustomInstallMode
+!macroend
+
+!define setCustomInstallMode
+    StrCpy $isForceCurrentInstall "1"
+    StrCpy $isForceCurrentInstallMultiUser "0"
+    StrCpy $isForceAllUsers "0"
+    StrCpy $isForceAllUsersAvailable "0"
 !macroend

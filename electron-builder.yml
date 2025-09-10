@@ -1,0 +1,39 @@
+appId: com.example.Prizm
+productName: Prizm
+copyright: Copyright © 2025 PrimeX
+
+directories:
+  output: dist
+  buildResources: build
+
+files:
+  - "**/*"
+  - "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme,test,__tests__}"
+  - "!**/node_modules/.bin"
+  - "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}"
+
+win:
+  target: nsis
+  icon: assets/Prizm_Logo.ico
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  installerIcon: assets/Prizm_Logo.ico
+  uninstallerIcon: assets/Prizm_Logo.ico
+  installerHeaderIcon: assets/Prizm_Logo.ico
+  menuCategory: false
+  shortcutName: Prizm Browser
+  uninstallDisplayName: Prizm Browser
+  deleteAppDataOnUninstall: false
+
+mac:
+  target: dmg
+  category: public.app-category.productivity
+
+linux:
+  target: ["AppImage", "deb"]
+  category: Utility

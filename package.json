@@ -7,7 +7,7 @@
   "author": "PrimeX",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win",
+    "dist": "electron-builder --win portable",
     "build:exe": "node build-simple.js",
     "build:portable": "electron-builder --win portable",
     "pack:win": "npx electron-packager . Prizm --platform=win32 --arch=x64 --icon=assets/Prizm_Logo.ico --out=dist --overwrite --app-version=1.0.0 --app-copyright=Copyright (c) 2025 PrimeX",
@@ -38,32 +38,16 @@
   "build": {
     "appId": "com.example.Prizm",
     "productName": "Prizm",
-    "artifactName": "${productName}.Setup.${version}.${ext}",
     "directories": {
-      "output": "dist",
-      "buildResources": "build"
+      "output": "dist"
     },
     "files": [
       "**/*",
       "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme,test,__tests__}",
-      "!**/node_modules/.bin",
-      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
-      "!node_modules/.cache/**"
+      "!**/node_modules/.bin"
     ],
     "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "publisherName": "PrimeX",
-      "publish": {
-        "provider": "github"
-      },
-      "icon": "assets/Prizm_Logo.ico",
+      "target": "nsis",
       "protocols": [
         {
           "name": "Prizm Browser",
@@ -75,17 +59,10 @@
     },
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "runAfterFinish": true,
-      "installerIcon": "assets/Prizm_Logo.ico",
-      "uninstallerIcon": "assets/Prizm_Logo.ico",
-      "installerHeaderIcon": "assets/Prizm_Logo.ico",
-      "menuCategory": true,
-      "shortcutName": "Prizm Browser",
-      "uninstallDisplayName": "Prizm Browser",
-      "include": "installer.nsh"
+      "createStartMenuShortcut": true
     },
     "mac": {
       "target": "dmg",

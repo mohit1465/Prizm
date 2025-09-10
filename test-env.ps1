@@ -1,0 +1,6 @@
+Write-Host "=== Environment Test ==="
+Write-Host "Current Directory: $(Get-Location)"
+Write-Host "Node.js Version: $(node --version)"
+Write-Host "npm Version: $(npm --version)"
+Write-Host "npx Version: $(npx --version)"
+Write-Host "=== End of Test ==="

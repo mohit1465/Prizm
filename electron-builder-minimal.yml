@@ -1,0 +1,28 @@
+appId: com.example.Prizm
+productName: Prizm
+copyright: Copyright © 2025 PrimeX
+
+directories:
+  output: dist
+
+files:
+  - "**/*"
+  - "!**/node_modules/*"
+  - "!**/.git"
+  - "!dist"
+
+win:
+  target: nsiz
+  icon: "assets/Prizm_Logo.ico"
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: "Prizm Browser"
+  uninstallDisplayName: "Prizm Browser"
+  installerIcon: "assets/Prizm_Logo.ico"
+  uninstallerIcon: "assets/Prizm_Logo.ico"
+  deleteAppDataOnUninstall: false
