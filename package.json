@@ -7,7 +7,7 @@
   "author": "PrimeX, Prizm",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win",
+    "dist": "electron-builder --win portable --x64",
     "build:exe": "node build-simple.js",
     "build:portable": "electron-builder --win portable",
     "pack:win": "npx electron-packager . Prizm --platform=win32 --arch=x64 --icon=assets/Prizm_Logo.ico --out=dist --overwrite --app-version=1.0.0 --app-copyright=Copyright (c) 2025 PrimeX",
@@ -51,18 +51,9 @@
       "!node_modules/.cache/**"
     ],
     "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
+      "target": "portable",
       "publisherName": "PrimeX",
-      "publish": {
-        "provider": "github"
-      },
+      "publish": null,
       "icon": "assets/Prizm_Logo.ico",
       "protocols": [
         {
@@ -72,20 +63,6 @@
         }
       ],
       "rfc3161TimeStampServer": "http://timestamp.digicert.com"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "runAfterFinish": true,
-      "installerIcon": "assets/Prizm_Logo.ico",
-      "uninstallerIcon": "assets/Prizm_Logo.ico",
-      "installerHeaderIcon": "assets/Prizm_Logo.ico",
-      "menuCategory": true,
-      "shortcutName": "Prizm Browser",
-      "uninstallDisplayName": "Prizm Browser",
-      "include": "build/installer.nsh"
     },
     "mac": {
       "target": "dmg",
