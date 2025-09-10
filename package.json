@@ -4,7 +4,7 @@
   "description": "A minimal desktop web browser built with Electron.",
   "main": "main.js",
   "license": "MIT",
-  "author": "",
+  "author": "PrimeX, Prizm",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win",
