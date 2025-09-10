@@ -4,10 +4,10 @@
   "description": "A minimal desktop web browser built with Electron.",
   "main": "main.js",
   "license": "MIT",
-  "author": "PrimeX",
+  "author": "",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win portable",
+    "dist": "electron-builder --win",
     "build:exe": "node build-simple.js",
     "build:portable": "electron-builder --win portable",
     "pack:win": "npx electron-packager . Prizm --platform=win32 --arch=x64 --icon=assets/Prizm_Logo.ico --out=dist --overwrite --app-version=1.0.0 --app-copyright=Copyright (c) 2025 PrimeX",
@@ -38,16 +38,32 @@
   "build": {
     "appId": "com.example.Prizm",
     "productName": "Prizm",
+    "artifactName": "${productName}.Setup.${version}.${ext}",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "build"
     },
     "files": [
       "**/*",
       "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme,test,__tests__}",
-      "!**/node_modules/.bin"
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!node_modules/.cache/**"
     ],
     "win": {
-      "target": "nsis",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "publisherName": "PrimeX",
+      "publish": {
+        "provider": "github"
+      },
+      "icon": "assets/Prizm_Logo.ico",
       "protocols": [
         {
           "name": "Prizm Browser",
@@ -59,10 +75,17 @@
     },
     "nsis": {
       "oneClick": false,
-      "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "installerIcon": "assets/Prizm_Logo.ico",
+      "uninstallerIcon": "assets/Prizm_Logo.ico",
+      "installerHeaderIcon": "assets/Prizm_Logo.ico",
+      "menuCategory": true,
+      "shortcutName": "Prizm Browser",
+      "uninstallDisplayName": "Prizm Browser",
+      "include": "build/installer.nsh"
     },
     "mac": {
       "target": "dmg",
