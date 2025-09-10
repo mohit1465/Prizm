@@ -9,29 +9,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --background-color: #E2E4F5;
-            --gray-blue: #9DABD9;
-            --light-blue: #BFC6F4;
-            --white-blue: #E4EAFF;
-            --text-light-blue: #586FBC;
-            --text-color: #1E293B;
-            --white-color: #ffffff;
-            --light-white: #ffffffa6;
-            --black-color: #000000;
-            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --background-color: #ffffff;
+            --background-color-hover: #F2F6FF;
+            --container-color: #D8E2FF;
+            --text-light-blue: #8196ce;
+            --text-color: #000000;
+            --full-view-container: #c40000b0;
+            --full-view-container-br: #ff0000;
+            --full-view-button: #ffffffe1;
+            --full-view-button-br: #ffffff;
         }
-
         html[data-theme='dark'] {
-            --background-color: #101019;
-            --gray-blue: #16171D;
-            --light-blue: #21242E;
-            --white-blue: #393D4C;
+            --background-color: #000000;
+            --background-color-hover: #050B1A;
+            --container-color: #151A28;
             --text-light-blue: #81CE85;
-            --text-color: #e7f0ff;
-            --white-color: #1a1a1a;
-            --light-white: #2d2d2d;
-            --black-color: #ffffff;
-            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+            --text-color: #ffffff;
+            --full-view-container: #ff00006e;
+            --full-view-container-br: #ff0000ad;
+            --full-view-button: #ffffffe1;
+            --full-view-button-br: #ffffff;
         }
 
         * {
@@ -79,9 +76,9 @@
             width: 100%;
             padding: 1rem 1.5rem;
             font-size: 1.1rem;
-            border: 2px solid var(--light-blue);
+            border: 2px solid var(--background-color-hover);
             border-radius: 50px;
-            background-color: var(--white-color);
+            background-color: var(--container-color);
             color: var(--text-color);
             outline: none;
             transition: all 0.3s ease;
@@ -102,7 +99,7 @@
         }
 
         .quick-link {
-            background-color: var(--white-color);
+            background-color: var(--container-color);
             border-radius: 30px;
             padding: 1.25rem;
             display: flex;
@@ -112,11 +109,10 @@
             text-decoration: none;
             color: var(--text-color);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: var(--box-shadow);
         }
 
         .quick-link:hover {
-            transform: translateY(-3px);
+            transform: translateY(-1px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
@@ -224,19 +220,31 @@
     </footer>
 
     <script>
-        // Theme detection
+        // Theme detection and synchronization
         function updateTheme() {
-            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.documentElement.setAttribute('data-theme', 'dark');
+            // First check localStorage for theme preference
+            const savedTheme = localStorage.getItem('theme');
+            
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
             } else {
-                document.documentElement.setAttribute('data-theme', 'light');
+                // Fallback to system preference if no saved theme
+                const systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', systemTheme);
             }
         }
+
+        // Listen for storage events (triggered by other tabs/windows)
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'theme') {
+                document.documentElement.setAttribute('data-theme', event.newValue);
+            }
+        });
 
         // Initial theme setup
         updateTheme();
 
-        // Listen for theme changes
+        // Listen for system theme changes
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateTheme);
 
         // Search functionality

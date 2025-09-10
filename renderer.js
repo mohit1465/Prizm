@@ -378,15 +378,38 @@ class TabManager {
     const html = document.documentElement;
     const currentTheme = html.getAttribute('data-theme');
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    console.log('Toggling theme. Current theme:', currentTheme, 'New theme:', newTheme);
+    
+    // Update the theme
     html.setAttribute('data-theme', newTheme);
-    localStorage.setItem('browser_theme', newTheme);
+    
+    // Save to localStorage for persistence and cross-tab sync
+    localStorage.setItem('theme', newTheme);
+    
+    // Force storage event to trigger in other windows
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'theme',
+      newValue: newTheme,
+      oldValue: currentTheme,
+      storageArea: localStorage,
+      url: window.location.href
+    }));
   }
 
   // Apply stored theme on startup
   applyTheme() {
-    const storedTheme = localStorage.getItem('browser_theme') || 'light';
+    const storedTheme = localStorage.getItem('theme') || 
+                       (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', storedTheme);
+    
+    // Apply theme to all existing webviews
+    this.webviews.forEach(({ webview }) => {
+      if (webview && webview.executeJavaScript) {
+        webview.executeJavaScript(`
+          document.documentElement.setAttribute('data-theme', '${storedTheme}');
+          localStorage.setItem('theme', '${storedTheme}');
+        `);
+      }
+    });
   }
 
   switchToTab(tabId) {
@@ -749,9 +772,25 @@ class UIManager {
     // Sidebar menu actions
     const sidebar = document.getElementById('global-webview-sidebar');
     sidebar.addEventListener('click', (e) => {
-      const action = e.target.dataset.action;
+      const menuItem = e.target.closest('.menu-item');
+      if (!menuItem) return;
+      
+      const action = menuItem.dataset.action;
       if (action === 'toggleTheme') {
         this.toggleTheme();
+        // Update the theme in the main window
+        const theme = document.documentElement.getAttribute('data-theme');
+        localStorage.setItem('theme', theme);
+        
+        // Force update all webviews
+        this.tabManager.webviews.forEach(({ webview }) => {
+          if (webview && webview.executeJavaScript) {
+            webview.executeJavaScript(`
+              document.documentElement.setAttribute('data-theme', '${theme}');
+              localStorage.setItem('theme', '${theme}');
+            `);
+          }
+        });
       }
     });
 
