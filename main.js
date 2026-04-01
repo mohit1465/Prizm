@@ -521,6 +521,28 @@ function setupAutoUpdater() {
   });
 }
 
+// Block developer tools
+// app.on('web-contents-created', (event, contents) => {
+//     contents.on('devtools-opened', (event) => {
+//         console.log('Developer tools access blocked');
+//         event.preventDefault();
+//         contents.closeDevTools();
+//     });
+    
+//     // Prevent opening devtools via keyboard shortcuts
+//     contents.on('before-input-event', (event, input) => {
+//         // Block F12, Ctrl+Shift+I, Cmd+Option+I, etc.
+//         const isDevToolsShortcut = (input.key === 'F12') ||
+//                                  (input.code === 'KeyI' && input.control && input.shift) ||
+//                                  (input.code === 'KeyI' && input.meta && input.alt);
+        
+//         if (isDevToolsShortcut) {
+//             event.preventDefault();
+//             return false;
+//         }
+//     });
+// });
+
 app.whenReady().then(() => {
   createMainWindow();
 

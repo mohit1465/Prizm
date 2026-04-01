@@ -388,6 +388,8 @@
             display: flex;
             min-height: 0;
             position: relative;
+            overflow: hidden;
+            position: relative;
         }
         /* Webview container */
         .webview-container {
@@ -425,22 +427,49 @@
         .webview-container.sidebar-open {
             width: calc(100% - 320px); /* 300px sidebar + 20px margin */
             max-width: calc(100% - 320px);
+            min-width: calc(100% - 320px);
+            transition: width 0.2s ease, max-width 0.2s ease, min-width 0.2s ease;
+            will-change: width, max-width, min-width;
+            overflow: hidden;
         }
         .webview-sidebar {
             position: absolute;
             top: 0;
             right: 0;
-            min-width: 250px;
+            min-width: 300px;
+            max-width: 1200px;
             width: 300px;
             height: 97%;
-            background: transparent;
+            background: var(--sidebar-bg);
             display: none;
             z-index: 300;
             padding: 16px;
-            margin: 0 0 0 16px;
             border-radius: 25px 0 0 25px;
             overflow-y: auto;
             -ms-overflow-style: none;
+            resize: none; /* Disable the default resize handle */
+            transition: width 0.2s ease;
+            overflow: hidden;
+            will-change: width;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            background-clip: padding-box;
+        }
+
+        .resize-handle {
+            position: absolute;
+            left: -2px;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: var(--light-blue);
+            cursor: col-resize;
+            z-index: 400;
+            transition: background-color 0.2s;
+        }
+
+        .resize-handle:hover,
+        .resize-handle.active {
+            background: var(--light-blue);
         }
 
         .menu-section {
@@ -1211,7 +1240,6 @@
         <div class="content" id="content">
             <!-- Webview containers will be dynamically added here -->
             <div class="webview-sidebar" id="global-webview-sidebar">
-                <div class="webview-developer"></div>
                 <div class="menu-section">
                     <div class="menu-item" data-action="toggleTheme">Theme Change</div>
                     <div class="menu-item" data-action="newTab">New tab <span class="shortcut">Ctrl+T</span></div>
@@ -1264,6 +1292,9 @@
                         <div id="downloads-section">
                             <div id="downloads"></div>
                         </div>
+                        <div id="devTools-section">
+                            <div id="devTools">devTools developer option will appread here</div>
+                        </div>
                         <div id="Bookmarks-section">
                             <div id="Bookmarks"></div>
                         </div>
@@ -1283,5 +1314,6 @@
     </div>
 
     <script src="./renderer.js"></script>
+    <script src="./resize-handler.js"></script>
     </body>
 </html>
